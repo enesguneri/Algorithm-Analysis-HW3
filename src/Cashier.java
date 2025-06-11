@@ -5,14 +5,12 @@ import java.util.Set;
 
 public class Cashier {
     int currentTransaction;
-    double currentCost;
     double baseCost;
     List<Integer> transactionHistory;
     int customerCount;
     int transactionTypeLimit;
     Set<Integer> transactionTypes;
     public Cashier(int baseCost, int transactionTypeLimit) {
-        currentCost = 0;
         this.baseCost = baseCost;
         transactionHistory = new ArrayList<>();
         customerCount = 0;
@@ -20,11 +18,6 @@ public class Cashier {
         transactionTypes = new HashSet<>();
     }
     public void setCurrentTransaction(int newTransaction) {
-        if (!transactionHistory.isEmpty()) {
-            currentTransaction = transactionHistory.getFirst();
-            if (currentTransaction != newTransaction)
-                currentCost = baseCost;
-        }
         this.currentTransaction = newTransaction;
         transactionHistory.add(currentTransaction);
         customerCount++;
@@ -33,29 +26,35 @@ public class Cashier {
     }
 
     public double calculateCost(int newTransaction) {
-        double tempCost = currentCost;
-        if (!transactionHistory.isEmpty()) {
-            currentTransaction = transactionHistory.getFirst();
-            if (currentTransaction != newTransaction)
-                tempCost = baseCost;
-        }
+        double tempCost = 0;
         if (transactionTypes.size() >= transactionTypeLimit && !transactionTypes.contains(newTransaction))
             return -1.0;
+
+        if (!transactionHistory.isEmpty() && currentTransaction != newTransaction)
+            tempCost = baseCost;
+
         //Rule 2
-        if (transactionHistory.size() >= 2 && transactionHistory.get(transactionHistory.size()-2) == currentTransaction && currentTransaction == newTransaction) {
-            tempCost = baseCost * 1.5;//daha önceden sıfırsa bu durumu kontrol etmeden sıfır gönderiyordu. ifi kaldırınca düzeldi
+        if (transactionHistory.size() >= 2) {
+            if (currentTransaction == newTransaction && transactionHistory.get(transactionHistory.size()-2) == newTransaction)
+                tempCost = baseCost * 1.5;
+            else if (transactionHistory.getLast() == newTransaction)
+                return 0;
         }
-        else if (!transactionHistory.isEmpty() && transactionHistory.getLast() == newTransaction)//No switching cost
-            return 0;
 
         //Rule 3
         for (int i = 0; i < transactionHistory.size(); i++) {
             if (newTransaction < transactionHistory.get(i)) {
-                tempCost *= 0.8;
+                if (tempCost == 0)
+                    tempCost = baseCost * 0.8;
+                else
+                    tempCost *= 0.8;
                 break;
             }
         }
 
         return tempCost;
     }
+
 }
+
+

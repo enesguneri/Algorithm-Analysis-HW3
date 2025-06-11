@@ -56,8 +56,6 @@ public class Main {
                     } else
                         totalCost = -1.0;
                     System.out.printf("%.2f\n", totalCost);
-                    //rule 5 kasiyer bazında mı genel müşteri sayısı mı belli değil.
-                    //her işlem sonrası cost base cost'a mı dönüyor kaldığı yerden mi devam ediyor belli değil.
                 }
             }
             System.out.println();
@@ -68,20 +66,18 @@ public class Main {
     public static double processGreedyAlgorithm(int transactionType,List<Cashier> cashierList) {
         double minCost = Double.MAX_VALUE;
         Cashier minCostCashier = cashierList.getFirst();
+        int index = 0;
         for (Cashier cashier : cashierList) {
-            //double currentCost = cashier.currentCost;
             double cost = cashier.calculateCost(transactionType);
             if (cost < minCost && cost != -1) {
                 minCost = cost;
                 minCostCashier = cashier;
+                index = cashierList.indexOf(cashier);
             }
-            //cashier.currentCost = currentCost;//calculateCost çalıştıktan sonra currentCost değişeceği için tekrardan ilk değeri atanır.
         }
-
-        double cost = minCostCashier.calculateCost(transactionType);
-        if (cost != -1)
-            minCostCashier.setCurrentTransaction(transactionType);
-        return cost;
+        minCostCashier.setCurrentTransaction(transactionType);
+        System.out.printf("Cashier %d Type %d Cost:%.2f\n",index,transactionType,minCost);
+        return minCost;
     }
 
     public static boolean isCashierCountSufficient(int cashierCount, int maxTypesPerCashier, List<Integer> transactionList) {
