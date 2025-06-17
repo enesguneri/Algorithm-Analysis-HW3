@@ -7,7 +7,7 @@ public class Main {
         //second line - cashier count
         //third line - max types for cashier
         //fourth line - input of transaction elements
-        String fileName = "input2.txt";
+        String fileName = "input.txt";
 
         try {
             Scanner scanner = new Scanner(new File(fileName));
@@ -61,7 +61,7 @@ public class Main {
                             } else
                                 totalCost = -1.0;
                             bw.write(String.format("%.2f\n", totalCost));
-                            //System.out.printf("%.2f\n", totalCost);
+                            System.out.printf("%.2f\n", totalCost);
                         } else
                             System.out.println("c, k, b values are out of range");
                     }
@@ -78,13 +78,13 @@ public class Main {
     public static double processGreedyAlgorithm(int transactionType,List<Cashier> cashierList) {
         double minCost = Double.MAX_VALUE;
         Cashier minCostCashier = cashierList.getFirst();
-        //int index = 0;
+        int index = 0;
         for (Cashier cashier : cashierList) {
             double cost = cashier.calculateCost(transactionType);
             if (cost < minCost && cost != -1) {
                 minCost = cost;
                 minCostCashier = cashier;
-                //index = cashierList.indexOf(cashier);
+                index = cashierList.indexOf(cashier);
             }
         }
         minCostCashier.setCurrentTransaction(transactionType);
@@ -97,3 +97,74 @@ public class Main {
         return transactionTypes.size() <= maxTypesPerCashier * cashierCount;
     }
 }
+
+class Cashier {
+    int currentTransaction;
+    double baseCost;
+    List<Integer> transactionHistory;
+    int customerCount;
+    int transactionTypeLimit;
+    Set<Integer> transactionTypes;
+    public Cashier(int baseCost, int transactionTypeLimit) {
+        this.baseCost = baseCost;
+        transactionHistory = new ArrayList<>();
+        customerCount = 0;
+        this.transactionTypeLimit = transactionTypeLimit;
+        transactionTypes = new HashSet<>();
+    }
+    public void setCurrentTransaction(int newTransaction) {
+        this.currentTransaction = newTransaction;
+        transactionHistory.add(currentTransaction);
+        customerCount++;
+        transactionTypes.add(currentTransaction);
+
+    }
+
+    public double calculateCost(int newTransaction) {
+        double tempCost = 0;
+        if (transactionTypes.size() >= transactionTypeLimit && !transactionTypes.contains(newTransaction))
+            return -1.0;
+
+        if (!transactionHistory.isEmpty() && currentTransaction != newTransaction)
+            tempCost = baseCost;
+
+        //Rule 2
+        if (transactionHistory.size() >= 2) {
+            if (currentTransaction == newTransaction && transactionHistory.get(transactionHistory.size()-2) == newTransaction)
+                tempCost = baseCost * 1.5;
+            else if (transactionHistory.getLast() == newTransaction)
+                return 0;
+        }
+
+        //Rule 3
+        for (Integer transaction : transactionHistory) {
+            if (newTransaction < transaction) {
+                if (tempCost == 0)
+                    tempCost = baseCost * 0.8;
+                else
+                    tempCost *= 0.8;
+                break;
+            }
+        }
+
+        return tempCost;
+    }
+
+}
+
+class InputData {
+    public int baseCost;
+    public int cashierCount;
+    public int maxTypesPerCashier;
+    public List<Integer> transactionTypes;
+    public List<Cashier> cashiers;
+
+    public InputData(int baseCost, int cashierCount, int maxTypesPerCashier, List<Integer> transactionTypes) {
+        this.baseCost = baseCost;
+        this.cashierCount = cashierCount;
+        this.maxTypesPerCashier = maxTypesPerCashier;
+        this.transactionTypes = transactionTypes;
+        this.cashiers = new ArrayList<>();
+    }
+}
+
