@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class Greedy {
     public static void main(String[] args) {
         //first line - base cost
         //second line - cashier count
@@ -78,13 +78,13 @@ public class Main {
     public static double processGreedyAlgorithm(int transactionType,List<Cashier> cashierList) {
         double minCost = Double.MAX_VALUE;
         Cashier minCostCashier = cashierList.getFirst();
-        int index = 0;
+        //int index = 0;
         for (Cashier cashier : cashierList) {
             double cost = cashier.calculateCost(transactionType);
             if (cost < minCost && cost != -1) {
                 minCost = cost;
                 minCostCashier = cashier;
-                index = cashierList.indexOf(cashier);
+                //index = cashierList.indexOf(cashier);
             }
         }
         minCostCashier.setCurrentTransaction(transactionType);
@@ -102,18 +102,22 @@ class Cashier {
     int currentTransaction;
     double baseCost;
     List<Integer> transactionHistory;
+    int maxTypeTransaction;
     int customerCount;
     int transactionTypeLimit;
     Set<Integer> transactionTypes;
     public Cashier(int baseCost, int transactionTypeLimit) {
         this.baseCost = baseCost;
         transactionHistory = new ArrayList<>();
+        maxTypeTransaction = 1;//calculateCost'un düzgün çalışması için başlangıçta 1 olarak ayarlanır. 1 olsa da learning curve kuralını etkilemez.
         customerCount = 0;
         this.transactionTypeLimit = transactionTypeLimit;
         transactionTypes = new HashSet<>();
     }
     public void setCurrentTransaction(int newTransaction) {
         this.currentTransaction = newTransaction;
+        if (newTransaction > maxTypeTransaction)
+            maxTypeTransaction = newTransaction;
         transactionHistory.add(currentTransaction);
         customerCount++;
         transactionTypes.add(currentTransaction);
@@ -125,7 +129,7 @@ class Cashier {
         if (transactionTypes.size() >= transactionTypeLimit && !transactionTypes.contains(newTransaction))
             return -1.0;
 
-        if (!transactionHistory.isEmpty() && currentTransaction != newTransaction)
+        if (!transactionTypes.isEmpty() && currentTransaction != newTransaction)
             tempCost = baseCost;
 
         //Rule 2
@@ -136,16 +140,14 @@ class Cashier {
                 return 0;
         }
 
-        //Rule 3
-        for (Integer transaction : transactionHistory) {
-            if (newTransaction < transaction) {
-                if (tempCost == 0)
-                    tempCost = baseCost * 0.8;
-                else
-                    tempCost *= 0.8;
-                break;
-            }
+        //Learning Curve
+        if (newTransaction < maxTypeTransaction) {
+            if (tempCost == 0)
+                tempCost = baseCost * 0.8;
+            else
+                tempCost *= 0.8;
         }
+
 
         return tempCost;
     }
